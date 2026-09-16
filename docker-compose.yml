@@ -1,0 +1,7 @@
+services:
+  movie:
+    build: ./movie/
+    ports:
+      - "3200:3200"
+  # to continue
+

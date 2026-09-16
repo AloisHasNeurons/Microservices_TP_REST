@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Movie Service API
+  description: API for browsing, adding, and rating movies.
+  version: "1.0.0"
+  contact:
+    name: Helene Coullon
+    url: https://helene-coullon.fr/
+    email: helene.coullon@imt-atlantique.fr
+servers:
+  - url: http://localhost:3200
+    description: Local development server
+
+tags:
+- name: admin
+  description: Secured Admin-only calls
+- name: dev
+  description: Operations available to regular developers
+
+paths:
+  /:
+    get:
+      tags:
+        - dev
+      summary: Service home page
+      description: Returns an HTML welcome message.
+      responses:
+        "200":
+          description: HTML welcome message
+          content:
+            text/html:
+              schema:
+                type: string
+                example: "<h1 style='color:blue'>Welcome to the Movie service!</h1>"
+
+  /json:
+    get:
+      tags:
+        - dev
+      summary: Retrieve the full list of movies
+      description: Returns the list of all available movies.
+      responses:
+        "200":
+          description: List of movies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Movie"
+
+  /movies/{movieid}:
+    get:
+      tags:
+        - dev
+      summary: Retrieve a movie by its ID
+      parameters:
+        - $ref: "#/components/parameters/MovieId"
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        "500":
+          description: Movie ID not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      tags:
+        - admin
+      summary: Add a new movie
+      description: Adds a movie with the given ID, if it doesn't already exist.
+      parameters:
+        - $ref: "#/components/parameters/MovieId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Movie"
+      responses:
+        "200":
+          description: Movie added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: movie added
+        "500":
+          description: Movie ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /moviesbytitle:
+    get:
+      tags:
+        - dev
+      summary: Retrieve a movie by its title
+      parameters:
+        - name: title
+          in: query
+          required: true
+          description: Exact title of the movie to search for
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Movie found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        "500":
+          description: Movie title not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /movies/{movieid}/{rate}:
+    put:
+      tags:
+        - admin
+      summary: Update a movie's rating
+      parameters:
+        - $ref: "#/components/parameters/MovieId"
+        - name: rate
+          in: path
+          required: true
+          description: New rating to assign to the movie
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Movie updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Movie"
+        "500":
+          description: Movie ID not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    MovieId:
+      name: movieid
+      in: path
+      required: true
+      description: Unique identifier of the movie
+      schema:
+        type: string
+
+  schemas:
+    Movie:
+      type: object
+      description: Representation of a movie.
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the movie
+          example: "720d006c-3a57-4b6a-b18f-9b713b073f3c"
+        title:
+          type: string
+          description: Movie title
+          example: "The Good Dinosaur"
+        rating:
+          type: number
+          format: float
+          description: Rating assigned to the movie
+          example: 7.4
+        director:
+          type: string
+          description: Movie director
+          example: "Peter Sohn"
+      required:
+        - id
+        - title
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Movie ID not found"
