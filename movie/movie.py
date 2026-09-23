@@ -75,6 +75,29 @@ def add_movie(movieid):
     res = make_response(jsonify({"message": "movie added"}), 200)
     return res
 
+@app.route("/movies/<movieid>/<rate>", methods=['PUT'])
+def update_movie_rating(movieid, rate):
+    for movie in movies:
+        if str(movie["id"]) == str(movieid):
+            movie["rating"] = rate
+            res = make_response(jsonify(movie),200)
+            write(movies)
+            return res
+
+    res = make_response(jsonify({"error":"movie ID not found"}),500)
+    return res
+
+@app.route("/movies/<movieid>", methods=['DELETE'])
+def del_movie(movieid):
+    for movie in movies:
+        if str(movie["id"]) == str(movieid):
+            movies.remove(movie)
+            write(movies)
+            return make_response(jsonify(movie),200)
+
+    res = make_response(jsonify({"error":"movie ID not found"}),500)
+    return res
+
 
 if __name__ == "__main__":
     # p = sys.argv[1]
