@@ -30,10 +30,13 @@ def get_json():
 
 
 @app.route("/dates/<date>", methods=["GET"])
-def get_schedule_bydate(date):
-    matches = [d for d in schedule if str(d.get("date")) == str(date)]
-    if matches:
-        return make_response(jsonify(matches), 200)
+def get_movies_by_date(date):
+    # Cherche la première entrée qui correspond à la date
+    entry = next((d for d in schedule if str(d.get("date")) == str(date)), None)
+
+    if entry and "movies" in entry:
+        return make_response(jsonify(entry["movies"]), 200)
+
     return make_response(jsonify({"error": "Date not found"}), 404)
 
 
