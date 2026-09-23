@@ -1,6 +1,5 @@
-from flask import Flask, render_template, request, jsonify, make_response
+from flask import Flask, jsonify, make_response
 import json
-from werkzeug.exceptions import NotFound
 
 app = Flask(__name__)
 
@@ -33,7 +32,10 @@ def get_json():
 def get_movies_by_date(date):
     # TODO : Aller chercher le nom du film à afficher plutôt que l'ID
     # Cherche la première entrée qui correspond à la date
-    entry = next((d for d in schedule if str(d.get("date")) == str(date)), None)
+    entry = next((
+        d for d in schedule
+        if str(d.get("date")) == str(date)
+        ), None)
 
     if entry and "movies" in entry:
         return make_response(jsonify(entry["movies"]), 200)
