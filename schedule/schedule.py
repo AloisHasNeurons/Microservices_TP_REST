@@ -31,6 +31,7 @@ def get_json():
 
 @app.route("/dates/<date>", methods=["GET"])
 def get_movies_by_date(date):
+    # TODO : Aller chercher le nom du film à afficher plutôt que l'ID
     # Cherche la première entrée qui correspond à la date
     entry = next((d for d in schedule if str(d.get("date")) == str(date)), None)
 
@@ -38,6 +39,21 @@ def get_movies_by_date(date):
         return make_response(jsonify(entry["movies"]), 200)
 
     return make_response(jsonify({"error": "Date not found"}), 404)
+
+
+@app.route("/movies/<movieid>", methods=["GET"])
+def get_dates_by_movieid(movieid):
+    # On teste si movieid est dans la liste 'movies' et on récupère la date
+    dates = [
+        m["date"]
+        for m in schedule
+        if "movies" in m and str(movieid) in [str(mid) for mid in m["movies"]]
+    ]
+
+    if dates:
+        return make_response(jsonify(dates), 200)
+
+    return make_response(jsonify({"error": "Movie not found"}), 404)
 
 
 if __name__ == "__main__":
