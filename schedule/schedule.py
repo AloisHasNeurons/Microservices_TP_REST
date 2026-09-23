@@ -58,6 +58,45 @@ def get_dates_by_movieid(movieid):
     return make_response(jsonify({"error": "Movie not found"}), 404)
 
 
+@app.route("/movies/<movieid>", methods=["DELETE"])
+def del_movie_by_id(movieid):
+    found = False
+
+    for entry in schedule:
+        # On filtre la liste pour retirer l'identifiant movieid
+        initial_len = len(entry.get("movies", []))
+        entry["movies"] = [
+            mid for mid in entry.get("movies", [])
+            if str(mid) != str(movieid)
+            ]
+
+        if len(entry["movies"]) < initial_len:
+            found = True
+
+    if found:
+        write({"schedule": schedule})
+        return make_response(jsonify(
+            {"message": f"Movie {movieid} removed from all dates"}
+            ), 200)
+
+    return make_response(jsonify({"error": "Movie ID not found"}), 404)
+
+
+@app.route("/dates/<date>", methods=["DELETE"])
+def del_movies_by_date(date):
+    entry = next((
+        d for d in schedule
+        if str(d.get("date")) == str(date)
+        ), None)
+
+    if entry:
+        entry["movies"] = []
+        write({"schedule": schedule})
+        return make_response(jsonify(entry), 200)
+
+    return make_response(jsonify({"error": "Date not found"}), 404)
+
+
 if __name__ == "__main__":
     print("Server running in port %s" % (PORT))
     app.run(host=HOST, port=PORT)
