@@ -9,6 +9,13 @@ app = Flask(__name__)
 PORT = 3200
 HOST = "0.0.0.0"
 
+current_user = {
+      "id": "chris_rivers",
+      "name": "Chris Rivers",
+      "last_active":1360031010,
+      "admin": True
+}
+
 with open("{}/databases/movies.json".format("."), "r") as jsf:
     movies = json.load(jsf)["movies"]
     print(movies)
@@ -62,8 +69,9 @@ def get_movie_bytitle():
 
 @app.route("/movies/<movieid>", methods=["POST"])
 def add_movie(movieid):
+    if not current_user["admin"]:
+        make_response(jsonify({"error" : "forbidden"}), 403)
     req = request.get_json()
-
     for movie in movies:
         if str(movie["id"]) == str(movieid):
             print(movie["id"])
@@ -72,7 +80,7 @@ def add_movie(movieid):
 
     movies.append(req)
     write(movies)
-    res = make_response(jsonify({"message": "movie added"}), 200)
+    res = make_response(jsonify({"message": "movie added"}), 201)
     return res
 
 
