@@ -3,10 +3,16 @@ import requests
 import json
 from werkzeug.exceptions import NotFound
 
+from flask_jwt_extended import create_access_token, get_jwt_identity, JWTManager, jwt_required
+
 app = Flask(__name__)
 
 PORT = 3203
 HOST = '0.0.0.0'
+
+# Initialisation de la partie JWT
+app.config["JWT_SECRET_KEY"] = "super-secret"
+jwt = JWTManager(app)
 
 current_user = {
       "id": "chris_rivers",
@@ -91,6 +97,39 @@ def delete_user(user_id):
           write(users)
           return (make_response("succesfully deleted"),204)
     return (make_response(jsonify({"error" : "user not found"}), 404))
+ 
+ # Route d'authentification
+@app.route("/login", methods=["POST"])
+def login():
+# 1. Recuperer dans la requête le nom de l'utilisateur qui souhaite se connecter
+   data = request.get_json()
+   username = data.get("name")
+# 2. Valider que l'utilisateur existe bien
+   for user in users:
+      if user["name"] == username:
+         break
+   if not user:
+      return (make_response(jsonify({"error" : "user not found"}), 404))
+# 3. Création d'un token d'accès JWT
+   access_token = create_access_token(identity=username)
+# 4. Renvoi du token créé
+   return (make_response(jsonify({"access_token" : access_token}), 200))
+
+@app.route("/user/jwt/<username>", methods=["GET"])
+@jwt_required()
+def infos(username):
+# 1. Récuperer l'identité jwt
+   identity = get_jwt_identity()
+   
+# 2. Vérifier si le username de l'utilisateur demandé correspond bien à celui du jwt
+   if identity == username:
+   
+# 3. Récupérer les infos de l'utilisateur
+      user_info = [user for user in users if user["name"] == username]
+# 4. Renvoyer en JSON
+      return (make_response(jsonify(user_info), 200))
+   else:
+      return (make_response(jsonify({"error" : "forbidden"}), 403))
 
 if __name__ == "__main__":
    print("Server running in port %s"%(PORT))
