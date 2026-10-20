@@ -4,6 +4,7 @@ from functools import wraps
 from flask_jwt_extended import JWTManager, get_jwt, get_jwt_identity, jwt_required
 from flask import Flask, jsonify, make_response
 import json
+import requests
 
 app = Flask(__name__)
 
@@ -184,6 +185,34 @@ def del_movies_by_date(date):
 
     return make_response(jsonify({"error": "Date not found"}), 404)
 
+@app.route("/dates/<date>", methods=["POST"])
+def create_date(date):
+    req = request.get_json()
+    new_movies = req.get("movies", [])
+
+    # On vérifie que les films existent bien dans movie
+    for movie_id in new_movies:
+        try:
+            response = requests.get(f"http://127.0.0.1:3200/movies/{movie_id}")
+        except requests.exceptions.RequestException:
+            return make_response(jsonify({"error": "movie service unavailable"}), 503)
+        if response.status_code != 200:
+            return make_response(jsonify({"error": f"invalid movie: {movie_id}"}), 400)
+
+    _schedule = next((d for d in schedule if str(d["date"]) == str(date)), None)
+
+    # La date n'existe pas encore : on l'ajoute directement
+    if _schedule is None:
+        schedule.append({"date": str(date), "movies": list(new_movies)})
+    else:
+        # La date existe : vérifier que les films ne sont pas déjà programmés
+        for movie_id in new_movies:
+            if movie_id in _schedule["movies"]:
+                return make_response(jsonify({"error": f"movie already booked for date: {date}"}), 409)
+        _schedule["movies"].extend(new_movies)
+
+    write(schedule)
+    return make_response(jsonify({"message": "movie added"}), 201)
 
 if __name__ == "__main__":
     print("Server running in port %s" % (PORT))
