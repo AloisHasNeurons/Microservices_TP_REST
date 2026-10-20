@@ -1,0 +1,7 @@
+# Fichiers exclus du contexte de build Docker
+# (.env contient le secret JWT : il ne doit pas finir dans les images)
+venv/
+.git/
+**/__pycache__/
+**/.mypy_cache/
+.env
