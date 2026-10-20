@@ -96,17 +96,6 @@ def to_list(value):
 # Ajoute une ou plusieurs dates à la réservation d'un utilisateur
 @app.route("/bookings/<userid>", methods=["POST"])
 def add_movie(userid):
-    """
-        Args:
-            userid (str): identifiant d'un utilisateur.
-
-        Returns:
-            JSON : Message de confirmation ou d'erreur.
-
-        URLs à tester:
-            POST localhost:PORT/bookings/<userid>
-            body : {"userid": "<userid>", "dates": [{"date": "<date>", "movies": "<movie_id>"}]}
-        """
     req = request.get_json()
     new_dates = req.get("dates", [])
     for entry in new_dates:
