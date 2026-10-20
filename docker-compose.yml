@@ -1,7 +1,42 @@
+# context: . -> build depuis la racine pour accéder au requirements.txt commun
+# JWT_SECRET_KEY : secret partagé par les 4 services, lu dans le fichier .env
+# (compose s'arrête avec une erreur si la variable n'est pas définie)
 services:
   movie:
-    build: ./movie/
+    build:
+      context: .
+      dockerfile: movie/Dockerfile
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
     ports:
       - "3200:3200"
-  # to continue
 
+  booking:
+    build:
+      context: .
+      dockerfile: booking/Dockerfile
+    environment:
+      # booking appelle movie et schedule par leur nom de service
+      MOVIE_URL: http://movie:3200
+      SCHEDULE_URL: http://schedule:3202
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+    ports:
+      - "3201:3201"
+
+  schedule:
+    build:
+      context: .
+      dockerfile: schedule/Dockerfile
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+    ports:
+      - "3202:3202"
+
+  user:
+    build:
+      context: .
+      dockerfile: user/Dockerfile
+    environment:
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env}
+    ports:
+      - "3203:3203"
