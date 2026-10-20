@@ -31,6 +31,7 @@ def admin_required(fn):
         return fn(*args, **kwargs)
     return wrapper
 
+
 with open('{}/databases/times.json'.format("."), "r") as jsf:
     schedule = json.load(jsf)["schedule"]
 
@@ -42,7 +43,7 @@ def write(schedule):
         json.dump(full, f)
 
 
-#===============================================================
+# ===============================================================
 
 # ROUTE de départ
 @app.route("/", methods=['GET'])
@@ -185,7 +186,10 @@ def del_movies_by_date(date):
 
     return make_response(jsonify({"error": "Date not found"}), 404)
 
+
 @app.route("/dates/<date>", methods=["POST"])
+# Réservé aux admins
+@admin_required
 def create_date(date):
     req = request.get_json()
     new_movies = req.get("movies", [])
@@ -213,6 +217,7 @@ def create_date(date):
 
     write(schedule)
     return make_response(jsonify({"message": "movie added"}), 201)
+
 
 if __name__ == "__main__":
     print("Server running in port %s" % (PORT))
